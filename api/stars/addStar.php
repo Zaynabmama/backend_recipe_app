@@ -1,6 +1,5 @@
 
 <?php
-require_once "../../conn/config.php";
 
 header("Access-Control-Allow-Origin: http://localhost:3000");
 header("Access-Control-Allow-Methods: POST");
@@ -11,13 +10,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents("php://input"), true);
     $user_id = $_SESSION['user_id'];
     $recipe_id = $data['recipe_id'];
-    $comment = $data['comment'];
+    $action = $data['action'];
 
-    $query = "INSERT INTO comments (user_id, recipe_id, comment) VALUES (:user_id, :recipe_id, :comment)";
+    if ($action === 'like') {
+        $query = "INSERT INTO likes (user_id, recipe_id) VALUES (:user_id, :recipe_id)";
+    } else {
+        $query = "DELETE FROM likes WHERE user_id = :user_id AND recipe_id = :recipe_id";
+    }
+
     $stmt = $pdo->prepare($query);
     $stmt->bindParam(':user_id', $user_id);
     $stmt->bindParam(':recipe_id', $recipe_id);
-    $stmt->bindParam(':comment', $comment);
 
     if ($stmt->execute()) {
         echo json_encode(['success' => true]);
